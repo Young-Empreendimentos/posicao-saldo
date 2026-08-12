@@ -1,0 +1,20 @@
+# Segredos — NUNCA commitar
+.env
+.env.*
+*.env
+secrets*.json
+*credential*.json
+*service_role*
+*.key
+
+# Saídas locais
+posicao_saldo_detalhado.csv
+posicao_saldo_por_banco.csv
+
+# Sistema / ferramentas
+.DS_Store
+Thumbs.db
+node_modules/
+__pycache__/
+*.pyc
+.vscode/
