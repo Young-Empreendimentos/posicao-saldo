@@ -1,13 +1,16 @@
 // Edge Function: posicao-caixa-sync
 // Puxa saldos do Sienge (/checking-accounts + /accounts-balances), aplica a
 // exclusão (XP / Alelo / mútuo) e faz upsert em posicao_caixa via RPC.
-// Secrets necessários no Supabase: SIENGE_API_USER, SIENGE_API_PASSWORD (SIENGE_SUBDOMAIN opcional).
+// Credencial do Sienge: use SIENGE_AUTH (o header pronto "Basic ...") OU
+// SIENGE_API_USER + SIENGE_API_PASSWORD. (SIENGE_SUBDOMAIN opcional, padrão youngemp.)
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const SUBDOMAIN = Deno.env.get("SIENGE_SUBDOMAIN") ?? "youngemp";
 const SIENGE_USER = Deno.env.get("SIENGE_API_USER") ?? "";
 const SIENGE_PASS = Deno.env.get("SIENGE_API_PASSWORD") ?? "";
+// Cabeçalho de auth já pronto (ex.: "Basic abc123...") — tem prioridade sobre user/pass
+const SIENGE_AUTH = (Deno.env.get("SIENGE_AUTH") ?? "").trim();
 const BASE = `https://api.sienge.com.br/${SUBDOMAIN}/public/api/v1`;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -16,6 +19,11 @@ const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const EXCLUDE_BANK = ["XP", "ALELO"];
 const EXCLUDE_NAME = ["MUTUO"];
 const norm = (s: string) => (s ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase().trim();
+
+function siengeAuthHeader(): string {
+  if (SIENGE_AUTH) return /^basic\s/i.test(SIENGE_AUTH) ? SIENGE_AUTH : ("Basic " + SIENGE_AUTH);
+  return "Basic " + btoa(`${SIENGE_USER}:${SIENGE_PASS}`);
+}
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -26,7 +34,7 @@ const json = (o: unknown, status = 200) =>
   new Response(JSON.stringify(o), { status, headers: { ...cors, "Content-Type": "application/json" } });
 
 async function siengeGet(path: string, params: Record<string, string>) {
-  const auth = "Basic " + btoa(`${SIENGE_USER}:${SIENGE_PASS}`);
+  const auth = siengeAuthHeader();
   const out: any[] = [];
   let offset = 0;
   const limit = 200;
@@ -47,7 +55,7 @@ async function siengeGet(path: string, params: Record<string, string>) {
 async function isAllowed(req: Request): Promise<boolean> {
   const h = req.headers.get("Authorization") ?? "";
   const token = h.replace(/^Bearer\s+/i, "");
-  if (token && token === SERVICE_KEY) return true; // agendador / admin
+  if (token && token === SERVICE_KEY) return true;
   try {
     const u = createClient(SUPABASE_URL, ANON_KEY, { global: { headers: { Authorization: h } } });
     const { data, error } = await u.rpc("posicao_caixa_is_member");
@@ -61,8 +69,8 @@ async function isAllowed(req: Request): Promise<boolean> {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   try {
-    if (!SIENGE_USER || !SIENGE_PASS)
-      return json({ ok: false, error: "Faltam os secrets SIENGE_API_USER / SIENGE_API_PASSWORD no Supabase." }, 500);
+    if (!SIENGE_AUTH && (!SIENGE_USER || !SIENGE_PASS))
+      return json({ ok: false, error: "Faltam credenciais: defina o secret SIENGE_AUTH (o valor que comeca com 'Basic ...') OU SIENGE_API_USER + SIENGE_API_PASSWORD." }, 500);
     if (!(await isAllowed(req))) return json({ ok: false, error: "Nao autorizado." }, 403);
 
     const url = new URL(req.url);
