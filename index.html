@@ -207,14 +207,6 @@
     </tr></thead><tbody id="tbody"></tbody></table></div>
     <div class="tfoot-total"><span id="tfoot-count">—</span><span>Total: <b class="tnum" id="tfoot-total">—</b></span></div></div>
 
-    <div class="card panel" id="hist-card">
-      <h2>Histórico de atualizações</h2>
-      <div class="hint">Saldo consolidado (líquido) a cada atualização</div>
-      <svg id="hist-svg" viewBox="0 0 720 110" preserveAspectRatio="none" aria-hidden="true"></svg>
-      <div class="hist-list" id="hist-list"></div>
-    </div>
-
-    <footer><div class="rule"></div><div id="foot-meta">—</div></footer>
   </div>
 
   <div id="tip" role="status"></div>
@@ -363,12 +355,10 @@
       META=payload.meta||{};
       ALL=(payload.contas||[]).map(c=>({empresa:c.empresa||"—",banco:c.banco||"—",conta:c.conta||"—",tipo:c.tipo||"",saldo:Number(c.saldo)||0}));
       document.getElementById("ref-date").textContent=fmtDate(META.data_referencia);
-      document.getElementById("upd-ago").textContent=relDias(META.atualizado_em);
+      document.getElementById("upd-ago").textContent=fmtQuando(META.atualizado_em);
       if(META.atualizado_em){var dd=Math.floor((Date.now()-new Date(META.atualizado_em))/864e5);if(dd>15)document.querySelector("#upd-pill .dot").style.background="var(--gold)";}
-      document.getElementById("foot-meta").textContent="Saldo "+(META.saldo_tipo||"—")+" · fonte "+(META.fonte||"Sienge")+" · exclui XP, Alelo e contas mútuo.";
       if(!wired){wireEvents();wired=true;}
       renderAll();
-      HIST=payload.historico||[]; renderHist(HIST);
       if(!ALL.length)toast("Nenhum saldo carregado ainda — clique em Atualizar para puxar do Sienge.");
     }
 
