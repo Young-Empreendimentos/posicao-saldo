@@ -48,7 +48,7 @@
   .btn-upd:hover{filter:brightness(1.06)} .btn-upd:active{transform:translateY(1px)} .btn-upd[disabled]{opacity:.6;cursor:default}
   .btn-ghost{background:transparent;color:var(--ink-2);border:1px solid var(--line-strong);box-shadow:none}
   .btn-ghost:hover{filter:none;border-color:var(--accent);color:var(--ink)}
-  @media(prefers-color-scheme:dark){.btn-upd{color:#08120f}} :root[data-theme="dark"] .btn-upd{color:#08120f} :root[data-theme="dark"] .btn-ghost,@media(prefers-color-scheme:dark){.btn-ghost{color:var(--ink-2)}}
+  @media(prefers-color-scheme:dark){.btn-upd{color:#fff} .btn-ghost{color:var(--ink-2)}} :root[data-theme="dark"] .btn-upd{color:#fff} :root[data-theme="dark"] .btn-ghost{color:var(--ink-2)}
   .stats{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:14px}
   @media(max-width:820px){.stats{grid-template-columns:1fr 1fr}}
   .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}
@@ -96,7 +96,7 @@
   .chip{border:1px solid var(--line-strong);background:var(--surface);color:var(--ink-2);border-radius:999px;padding:6px 14px;font-size:13px;cursor:pointer;font-family:inherit;transition:all .15s}
   .chip:hover{border-color:var(--accent);color:var(--ink)}
   .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
-  @media(prefers-color-scheme:dark){.chip[aria-pressed="true"]{color:#08120f}} :root[data-theme="dark"] .chip[aria-pressed="true"]{color:#08120f}
+  @media(prefers-color-scheme:dark){.chip[aria-pressed="true"]{color:#fff}} :root[data-theme="dark"] .chip[aria-pressed="true"]{color:#fff}
   .search{position:relative}
   .search input{font-family:inherit;font-size:13.5px;padding:8px 14px 8px 34px;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);border-radius:9px;width:230px;max-width:52vw}
   .search input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--ring)}
@@ -133,7 +133,7 @@
   #gate h1{font-family:var(--font-display);font-size:30px;margin:.2em 0 .1em}
   #gate p{color:var(--ink-2);font-size:14px;margin:.2em 0 1.4em}
   .gbtn{display:inline-flex;align-items:center;gap:10px;background:var(--accent);color:#fff;border:none;border-radius:11px;padding:12px 20px;font-family:inherit;font-size:14.5px;font-weight:600;cursor:pointer;box-shadow:var(--shadow)}
-  @media(prefers-color-scheme:dark){.gbtn{color:#08120f}} :root[data-theme="dark"] .gbtn{color:#08120f}
+  @media(prefers-color-scheme:dark){.gbtn{color:#fff}} :root[data-theme="dark"] .gbtn{color:#fff}
   .gbtn:hover{filter:brightness(1.06)}
   .gmini{margin-top:16px;font-size:12.5px;color:var(--muted)}
   .spin{width:26px;height:26px;border-radius:50%;border:3px solid var(--line-strong);border-top-color:var(--accent);animation:sp 1s linear infinite;margin:6px auto 0}
@@ -154,7 +154,7 @@
       </div>
       <div id="g-loading"><p>Carregando…</p><div class="spin"></div></div>
       <div id="g-denied" hidden>
-        <p>Sua conta <b id="g-email"></b> ainda não tem acesso a este painel. Peça pra Elen (admin) te liberar.</p>
+        <p>Acesso restrito. A conta <b id="g-email"></b> não está liberada.</p>
         <button class="btn-upd btn-ghost" id="btn-signout-2">Trocar de conta</button>
       </div>
       <div id="g-error" hidden><p id="g-error-msg">Erro.</p><button class="btn-upd btn-ghost" id="btn-retry">Tentar de novo</button></div>
