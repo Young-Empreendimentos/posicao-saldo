@@ -207,6 +207,13 @@
     </tr></thead><tbody id="tbody"></tbody></table></div>
     <div class="tfoot-total"><span id="tfoot-count">—</span><span>Total: <b class="tnum" id="tfoot-total">—</b></span></div></div>
 
+    <div class="card panel" id="hist-card">
+      <h2>Histórico</h2>
+      <div class="hint">Evolução do saldo consolidado · um ponto por dia</div>
+      <svg id="hist-svg" viewBox="0 0 720 110" preserveAspectRatio="none" aria-hidden="true"></svg>
+      <div class="hist-list" id="hist-list"></div>
+    </div>
+
   </div>
 
   <div id="tip" role="status"></div>
@@ -359,6 +366,7 @@
       if(META.atualizado_em){var dd=Math.floor((Date.now()-new Date(META.atualizado_em))/864e5);if(dd>15)document.querySelector("#upd-pill .dot").style.background="var(--gold)";}
       if(!wired){wireEvents();wired=true;}
       renderAll();
+      HIST=payload.historico||[]; renderHist(HIST);
       if(!ALL.length)toast("Nenhum saldo carregado ainda — clique em Atualizar para puxar do Sienge.");
     }
 
