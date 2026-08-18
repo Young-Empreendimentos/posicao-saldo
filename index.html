@@ -71,6 +71,15 @@
   .bar-row.lead .bar-fill{background:var(--accent-strong)}
   .bar-val{font-size:13px;color:var(--ink);min-width:96px;text-align:right}
   .bar-row:hover .bar-track{outline:2px solid var(--ring);outline-offset:2px}
+  .emp-row{display:grid;grid-template-columns:160px 1fr 130px;align-items:center;gap:12px}
+  .ename{font-size:13px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .emp-track{position:relative;height:12px;background:var(--surface-2);border-radius:5px;overflow:hidden}
+  .emp-track.diverge::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--line-strong);z-index:1}
+  .emp-fill{position:absolute;top:0;bottom:0;background:var(--accent);border-radius:5px}
+  .emp-fill.neg{background:var(--neg)}
+  .emp-val{font-size:13px;text-align:right;color:var(--ink);white-space:nowrap}
+  .emp-val.neg{color:var(--neg)}
+  .emp-row:hover .emp-track{outline:2px solid var(--ring);outline-offset:2px}
   .donut-wrap{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
   .donut{position:relative;width:190px;height:190px;flex:0 0 auto}
   .donut svg{transform:rotate(-90deg);display:block}
@@ -181,6 +190,7 @@
 
     <section class="panels">
       <div class="card panel"><h2>Saldo por banco</h2><div class="hint">Consolidado das empresas selecionadas · maior primeiro</div><div class="bars" id="bars"></div></div>
+      <div class="card panel"><h2>Saldo por empresa</h2><div class="hint">Todas as empresas · maior primeiro</div><div class="bars" id="emps"></div></div>
     </section>
 
     <div class="toolbar">
@@ -291,7 +301,28 @@
     }
     function renderChips(){var box=document.getElementById("chips");box.innerHTML="";
       ["Todas"].concat(groupSum(ALL,"empresa").map(d=>d.k)).forEach(name=>{var c=el("button","chip",name);c.setAttribute("aria-pressed",state.empresa===name?"true":"false");c.addEventListener("click",()=>{state.empresa=name;renderAll();});box.appendChild(c);});}
-    function renderAll(){var rows=base();renderChips();renderKPIs(rows);renderBars(rows);renderTable(rows);}
+    function renderAll(){var rows=base();renderChips();renderKPIs(rows);renderBars(rows);renderEmpresas(rows);renderTable(rows);}
+
+    function nomeEmp(n){return String(n||"—").replace(/empreendimento(s)?\s+imobili[aá]rio(s)?/ig,"").replace(/\bspe\b/ig,"").replace(/\bltda\.?/ig,"").replace(/\s{2,}/g," ").trim()||String(n||"—");}
+    function renderEmpresas(rows){
+      var box=document.getElementById("emps"); if(!box) return; box.innerHTML="";
+      var g=groupSum(rows,"empresa"); if(!g.length){ box.appendChild(el("div","hint","Sem empresas.")); return; }
+      var total=g.reduce(function(s,d){return s+d.v;},0);
+      var maxAbs=g.reduce(function(m,d){return Math.max(m,Math.abs(d.v));},0)||1;
+      var hasNeg=g.some(function(d){return d.v<0;});
+      g.forEach(function(d){
+        var row=el("div","emp-row"); var nm=el("div","ename",nomeEmp(d.k)); nm.title=d.k; row.appendChild(nm);
+        var track=el("div","emp-track"+(hasNeg?" diverge":"")); var fill=el("div","emp-fill"+(d.v<0?" neg":""));
+        var w=Math.abs(d.v)/maxAbs*(hasNeg?50:100);
+        if(hasNeg){ if(d.v>=0){ fill.style.left="50%"; fill.style.width=w+"%"; } else { fill.style.right="50%"; fill.style.width=w+"%"; } }
+        else { fill.style.left="0"; fill.style.width=(d.v>0?Math.max(w,1.2):0)+"%"; }
+        track.appendChild(fill); row.appendChild(track);
+        row.appendChild(el("div","emp-val tnum"+(d.v<0?" neg":""), brl(d.v)));
+        box.appendChild(row);
+        row.addEventListener("mousemove",function(ev){showTip("<div class='t-t'>"+nomeEmp(d.k)+"</div><div class='t-s'>"+brl(d.v)+" · "+fpct(d.v,total)+"</div>",ev.clientX,ev.clientY);});
+        row.addEventListener("mouseleave",hideTip);
+      });
+    }
 
     function fmtQuando(iso){ if(!iso) return "—"; try{ return new Date(iso).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}); }catch(e){ return String(iso); } }
     function renderHist(hist){
