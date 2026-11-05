@@ -216,7 +216,7 @@
 
     <div class="card panel" id="hist-card">
       <h2>Histórico</h2>
-      <div class="hint">Evolução do saldo consolidado · um ponto por dia</div>
+      <div class="hint">Evolução do saldo consolidado · um ponto por data de referência (fechamentos e quinzenas)</div>
       <svg id="hist-svg" viewBox="0 0 720 110" preserveAspectRatio="none" aria-hidden="true"></svg>
       <div class="hist-list" id="hist-list"></div>
     </div>
@@ -346,10 +346,10 @@
       var line=document.createElementNS("http://www.w3.org/2000/svg","path");
       line.setAttribute("d", d); line.setAttribute("fill","none"); line.setAttribute("stroke","var(--accent)"); line.setAttribute("stroke-width","2"); line.setAttribute("vector-effect","non-scaling-stroke"); svg.appendChild(line);
       pts.forEach((p,i)=>{ var c=document.createElementNS("http://www.w3.org/2000/svg","circle"); c.setAttribute("cx",p[0]); c.setAttribute("cy",p[1]); c.setAttribute("r","3"); c.setAttribute("fill","var(--accent)");
-        c.addEventListener("mousemove",ev=>showTip("<div class='t-t'>"+fmtQuando(hist[i].quando)+"</div><div class='t-s'>"+brl(Number(hist[i].total)||0)+"</div>",ev.clientX,ev.clientY));
+        c.addEventListener("mousemove",ev=>showTip("<div class='t-t'>"+fmtDate(hist[i].quando)+"</div><div class='t-s'>"+brl(Number(hist[i].total)||0)+"</div>",ev.clientX,ev.clientY));
         c.addEventListener("mouseleave",hideTip); svg.appendChild(c); });
       hist.slice().reverse().forEach(h=>{ var row=el("div","hl");
-        row.appendChild(el("span","hq",fmtQuando(h.quando)));
+        row.appendChild(el("span","hq",fmtDate(h.quando)));
         row.appendChild(el("span","hc",(h.contas||0)+" contas"));
         row.appendChild(el("span","hv tnum",brl(Number(h.total)||0)));
         list.appendChild(row); });
