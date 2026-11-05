@@ -43,6 +43,11 @@
   .head-right{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
   .pill{display:inline-flex;align-items:center;gap:7px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 13px;font-size:12.5px;color:var(--ink-2);box-shadow:var(--shadow)}
   .pill .dot{width:7px;height:7px;border-radius:50%;background:var(--accent)}
+  #date-pill{cursor:pointer}
+  #date-pick{appearance:none;-webkit-appearance:none;border:0;background:transparent;color:var(--ink);font:inherit;font-weight:700;cursor:pointer;padding:0 16px 0 2px;outline:none;
+    background-image:linear-gradient(45deg,transparent 50%,var(--ink-2) 50%),linear-gradient(135deg,var(--ink-2) 50%,transparent 50%);
+    background-position:calc(100% - 6px) 55%,calc(100% - 2px) 55%;background-size:4px 4px,4px 4px;background-repeat:no-repeat}
+  #date-pick option{color:var(--ink);background:var(--surface)}
   .upd-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
   .btn-upd{display:inline-flex;align-items:center;gap:6px;background:var(--accent);color:#fff;border:none;border-radius:999px;padding:7px 15px;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;box-shadow:var(--shadow);transition:filter .15s,transform .05s}
   .btn-upd:hover{filter:brightness(1.06)} .btn-upd:active{transform:translateY(1px)} .btn-upd[disabled]{opacity:.6;cursor:default}
@@ -177,7 +182,9 @@
           <span class="pill" id="upd-pill"><span class="dot"></span> Atualizado <b id="upd-ago">—</b></span>
           <button class="btn-upd" id="btn-upd" type="button">↻ Atualizar</button>
         </div>
-        <span class="pill"><span class="dot"></span> Referência: <b id="ref-date">—</b></span>
+        <label class="pill" id="date-pill" for="date-pick"><span class="dot"></span> Referência:
+          <select id="date-pick" aria-label="Data de referência"><option>—</option></select>
+        </label>
       </div>
     </header>
 
@@ -351,7 +358,16 @@
     function relDias(iso){if(!iso)return "—";var d=Math.floor((Date.now()-new Date(iso))/864e5);return d<=0?"hoje":d===1?"há 1 dia":"há "+d+" dias";}
     function fmtDate(s){if(!s)return "—";var p=String(s).slice(0,10).split("-");return p.length===3?p[2]+"/"+p[1]+"/"+p[0]:s;}
 
+    function popularDatas(datas,sel){
+      var s=document.getElementById("date-pick");if(!s)return;
+      datas=Array.isArray(datas)?datas:[];
+      if(!datas.length){s.innerHTML="<option>"+fmtDate(sel)+"</option>";return;}
+      s.innerHTML=datas.map(function(d){var v=String(d).slice(0,10);return "<option value='"+v+"'>"+fmtDate(v)+"</option>";}).join("");
+      s.value=String(sel).slice(0,10);
+    }
+
     function wireEvents(){
+      document.getElementById("date-pick").addEventListener("change",function(e){load(e.target.value);});
       document.getElementById("q").addEventListener("input",e=>{state.q=e.target.value;renderTable(base());});
       document.querySelectorAll("thead th").forEach(th=>th.addEventListener("click",()=>{var k=th.getAttribute("data-k");if(!k)return;if(state.sortK===k)state.sortDir*=-1;else{state.sortK=k;state.sortDir=(k==="saldo")?-1:1;}renderTable(base());}));
       document.getElementById("btn-signout").addEventListener("click",async()=>{await SUPA.auth.signOut();location.reload();});
@@ -361,7 +377,7 @@
     function setData(payload){
       META=payload.meta||{};
       ALL=(payload.contas||[]).map(c=>({empresa:c.empresa||"—",banco:c.banco||"—",conta:c.conta||"—",tipo:c.tipo||"",saldo:Number(c.saldo)||0}));
-      document.getElementById("ref-date").textContent=fmtDate(META.data_referencia);
+      popularDatas(META.datas_disponiveis,META.data_referencia);
       document.getElementById("upd-ago").textContent=fmtQuando(META.atualizado_em);
       if(META.atualizado_em){var dd=Math.floor((Date.now()-new Date(META.atualizado_em))/864e5);if(dd>15)document.querySelector("#upd-pill .dot").style.background="var(--gold)";}
       if(!wired){wireEvents();wired=true;}
@@ -394,12 +410,12 @@
       if(which==="denied")document.getElementById("g-email").textContent=info||"";
       if(which==="error")document.getElementById("g-error-msg").textContent="Erro: "+(info||"desconhecido");
     }
-    async function load(){
+    async function load(date){
       var {data:{session}}=await SUPA.auth.getSession();
       if(!session){gate("login");return;}
       gate("loading");
       var email=session.user&&session.user.email||"";
-      var {data,error}=await SUPA.rpc("posicao_caixa_dados");
+      var {data,error}=await SUPA.rpc("posicao_caixa_dados", date?{p_date:date}:{});
       if(error){gate("error",error.message);return;}
       if(!data){gate("denied",email);return;}
       document.getElementById("user-email").textContent=email;
