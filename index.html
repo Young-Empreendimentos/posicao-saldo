@@ -233,6 +233,7 @@
     const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ2dHltcHphdGNsdmphcXVjZWJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA0NTI1NzYsImV4cCI6MjA4NjAyODU3Nn0.C8vWcljx6veAQ0hCi0ms7Ixm6NxhSdWBDeRgUy2Kz50";
     const SYNC_URL = SUPABASE_URL + "/functions/v1/posicao-caixa-sync";
     const SUPA = createClient(SUPABASE_URL, SUPABASE_ANON);
+    window.supabaseClient = SUPA; // celebracao de venda (celebracao-venda.js) reaproveita este client
 
     const RAMP=["--r1","--r2","--r3","--r4","--r5","--r6"];
     let ALL=[], META={}, HIST=[], state={empresa:"Todas",q:"",sortK:"saldo",sortDir:-1}, wired=false;
@@ -428,5 +429,6 @@
     SUPA.auth.onAuthStateChange(()=>load());
     load();
   </script>
+  <script src="celebracao-venda.js" data-sistema="Posição de Saldo" data-som="sons/venda-celebracao.mp3"></script>
 </body>
 </html>
